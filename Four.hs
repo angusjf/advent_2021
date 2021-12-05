@@ -3,7 +3,8 @@ import Data.Maybe
 
 type Card = [[Maybe Int]]
 
-main = readFile "input4.txt" >>= pure . uncurry bingo . parse . lines
+test = uncurry bingo . parse . lines <$> readFile "test4.txt"
+main = uncurry bingo . parse . lines <$> readFile "input4.txt"
 
 toCard :: [String] -> Card
 toCard = map (map (Just . read)) . map (splitWith (== ' ')) . init
