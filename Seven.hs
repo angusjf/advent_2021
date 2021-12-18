@@ -7,7 +7,7 @@ main = pt2 <$> readFile "input7.txt"
 
 pt2 = getFuel . map read . splitWith (== ',')
 
-getFuel xs = minimum $ map ((flip alignAt) xs) [(minimum xs)..(maximum xs)]
+getFuel xs = minimum $ map (`alignAt` xs) [(minimum xs)..(maximum xs)]
 
 alignAt n = sum . map (fuelToMoveFrom n)
 

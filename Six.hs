@@ -9,7 +9,7 @@ pt2 = sum . M.elems . (!! 256) . iterate step . tally . parse . head . lines
 
 parse = map read . splitWith (== ',')
 
-step = resetTimers . addNew . (M.mapKeys pred)
+step = resetTimers . addNew . M.mapKeys pred
 
 resetTimers xs = M.delete (-1) $ add (M.findWithDefault 0 (-1) xs) 6 xs
 

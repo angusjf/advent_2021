@@ -1,80 +1,54 @@
 import Data.List
-import Data.Maybe
 import Data.Char
-import Debug.Trace
-import qualified Data.Map as M
 import Data.Array hiding (index)
-import Control.Concurrent
-import System.IO.Unsafe
 
+-- main is the entry point 
+-- we have to use <$> to apply the pt2 function
+-- on the contents of the file as haskell keeps IO related code
+-- separate from pure functions
+main :: IO ()
 main = pt2 <$> readFile "input10.txt"
 
-data Cell
-  = Zero | One | Two | Three | Four
-  | Five | Six | Seven | Eight | Nine 
-  | Exploding | Exploded deriving (Eq)
+-- This function 'solves the problem' - taking a String (our input grid)
+-- and returning the line number. This has to be a Maybe Int as it's hard to
+-- convince haskell this program will find an all 0 grid at some point
+-- iterate creates and infinite list where we run the simulation
+-- zip [0..] pairs every step with a number
+-- then find looks for the step where all cells are zero
+-- and fmap fst gets the number (first element of the tuple)
+pt2 :: String -> Maybe Int
+pt2 = fmap fst . find (all (== 0) . snd) . zip [0..] . iterate (cascade . fmap inc) . parse
 
-toCell '0' = Zero 
-toCell '1' = One 
-toCell '2' = Two 
-toCell '3' = Three 
-toCell '4' = Four 
-toCell '5' = Five 
-toCell '6' = Six 
-toCell '7' = Seven 
-toCell '8' = Eight 
-toCell '9' = Nine 
+-- I'm defining a type alias here do I don't repeat myself but
+-- Array (Int, Int) Int means a 2d array of ints
+type Grid = Array (Int, Int) Int
 
-inc Zero      = One 
-inc One       = Two 
-inc Two       = Three 
-inc Three     = Four 
-inc Four      = Five 
-inc Five      = Six 
-inc Six       = Seven 
-inc Seven     = Eight 
-inc Eight     = Nine 
-inc Nine      = Exploding
-inc Exploding = Exploding
-inc Exploded  = Exploded
+-- parse is fairly clear... split the string into lines, put it in a 2d array
+-- then turn all the characters into ints
+parse :: String -> Grid
+parse = fmap digitToInt . to2dArray . lines
 
-type Grid = Array (Int, Int) Cell
-
-pt2 = fmap fst . find (all (== Zero) . snd) . zip [0..] . iterate step . fmap toCell . to2dArray . lines
-
-step :: Grid -> Grid
-step = cascade . fmap inc
-
+-- cascade is the core of the program
+-- it takes a grid to a grid, basically stepping the simulation. we check if there are no 11s
+-- (I'm using 11 to mean exploded cells and 10 to mean exploding cells)
 cascade :: Grid -> Grid
-cascade grid =
-    case index (== Exploding) grid of
-        Just pos ->
-            cascade (explode pos grid)
-        Nothing ->
-            fmap (iff (== Exploded) Zero) grid
+cascade grid = maybe (fmap (iff (== 11) 0) grid) (cascade . explode grid) (index (== 10) grid)
 
-explode :: (Int, Int) -> Grid -> Grid
-explode pos grid =
-    foldr
-        (\p acc -> at acc p inc)
-        (at grid pos (const Exploded))
-        (surrounding pos)
+explode grid pos = foldr (at inc) (at (const 11) pos grid) (surrounding pos)
+
+inc 10 = 10
+inc 11 = 11
+inc x = x + 1
 
 -- helpers
 
-at xs p f =
-    if (inRange (bounds xs) p) then
-        xs // [(p, f (xs ! p))]
-    else
-        xs
+at f p xs = if inRange (bounds xs) p then xs // [(p, f (xs ! p))] else xs
 
 index f = fmap fst . find (f . snd) . assocs
 
 to2dArray xs = listArray ((0, 0), (length (head xs) - 1, length xs - 1)) $ concat xs
 
-surrounding :: (Int, Int) -> [(Int, Int)]
-surrounding (a, b) =
-    [ (x, y) | x <- a ± 1, y <- b ± 1 ]
+surrounding (a, b) = [ (x, y) | x <- a ± 1, y <- b ± 1 ]
 
 x ± d = [ x - d .. x + d ]
 

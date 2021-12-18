@@ -20,7 +20,7 @@ fromBin xs = sum $ zipWith (\x -> (* 2 ^ x)) [0..] (reverse (map n xs))
 --life :: [[Bool]] -> Int
 life xs = o2 * co2
   where o2 = fromBin $ f xs
-        co2 = fromBin $ g $ xs
+        co2 = fromBin $ g xs
 
 f [[]] = []
 f xs = 
@@ -35,7 +35,7 @@ g [[]] = []
 g [x] = x
 g xs = 
     let
-        heads = map head $ xs
+        heads = map head xs
         mf = not $ mostFreq heads
         new = map tail $ filter (\x -> head x == mf) xs
     in

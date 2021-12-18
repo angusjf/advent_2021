@@ -7,7 +7,7 @@ test = uncurry bingo . parse . lines <$> readFile "test4.txt"
 main = uncurry bingo . parse . lines <$> readFile "input4.txt"
 
 toCard :: [String] -> Card
-toCard = map (map (Just . read)) . map (splitWith (== ' ')) . init
+toCard = map (map (Just . read) . splitWith (== ' ')) . init
 
 parse :: [String] -> ([Int], [Card])
 parse (numbers:_:rest) = (map read splitNumbers, map toCard cards)
@@ -25,7 +25,7 @@ bingo (called:rest) cards =
     where strikedCards = map (strike called) cards
 
 isWinner :: Card -> Bool
-isWinner card = any (all id) bools || any (all id) (transpose bools)
+isWinner card = any and bools || any and (transpose bools)
     where bools = map (map isNothing) card
 
 strike :: Int -> Card -> Card

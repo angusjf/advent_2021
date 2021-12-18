@@ -25,14 +25,13 @@ left  (x, y) = (x, y - 1)
 right (x, y) = (x, y + 1)
 
 atSurrounding :: Array (Int, Int) Int -> (Int, Int) -> [Int]
-atSurrounding xs pos = catMaybes $ map ((!!!) xs) $ surrounding pos
+atSurrounding xs pos = mapMaybes (xs !!!) $ surrounding pos
 
 xs !!! (x, y) = if inBounds xs (x, y) then Just $ xs ! (x, y) else Nothing
 
 surrounding pos = [ up pos, down pos, left pos, right pos ]
 
 basinSizes :: Array (Int, Int) Int -> [Int]
---basinSizes xs = [ (basinSize xs) ((lowPoints xs) !! 1) ]
 basinSizes xs = map (basinSize xs) (lowPoints xs)
 
 inBounds :: Array (Int, Int) x -> (Int, Int) -> Bool
@@ -47,7 +46,7 @@ helper :: Array (Int, Int) Int -> [(Int, Int)] -> (Int, Int) -> [(Int, Int)]
 helper xs visited pos =
     let
         unvisited :: [(Int, Int)]
-        unvisited = filter (inBounds xs) $ filter (not . (flip elem) visited) (surrounding pos)
+        unvisited = filter (inBounds xs) $ filter (not . flip elem visited) (surrounding pos)
         inBasin :: [(Int, Int)]
         inBasin = filter (\p -> (xs ! p) > (xs ! pos) && (xs ! p) /= 9) unvisited
         f :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
